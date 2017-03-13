@@ -6,8 +6,19 @@
     margin-left: 20px;
 }
 
-#user-display, .player-info {
+#user-display, .player-info, .win-losses {
     text-align: center;
+}
+
+.player-info {
+    position: relative;
+    min-height: 200px;
+}
+
+.wins-losses {
+    position: absolute;
+    width: 100%;
+    top: 160px;
 }
 
 form {
@@ -21,7 +32,7 @@ body {
     background: rgb(66,66,66);
 }
 
-.mdl-layout-title {
+.mdl-layout-title, .player-welcome  {
     color: white;
 }
 

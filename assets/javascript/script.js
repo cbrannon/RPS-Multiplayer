@@ -23,18 +23,28 @@ $(document).ready(function () {
     currentPlayers = Object.keys(players);
     console.log(currentPlayers.length);
 
-    playerName = sessionStorage.getItem('name');
-    playerNumber = sessionStorage.getItem('playerNumber');
+    resetNames();
 
-    console.log("Player name is: " + playerName);
-    console.log("Player number is: " + playerNumber);
-    
     if (currentPlayers.length > 0) {
-      console.log(currentPlayers);
-      for (var i = 0; i < currentPlayers.length; i ++) {}
-    }
+      playerName = sessionStorage.getItem('name');
+      playerNumber = sessionStorage.getItem('playerNumber');
 
-    // setDisplay(playerName, playerNumber);
+      for (var i = 0; i < currentPlayers.length; i++) {
+        var player = currentPlayers[i];
+        var name = players[player].name;
+        var playerNameId = "#player" + player + "-name";
+        var playerWinsId = "#player" + player + "-win-loss";
+        $(playerNameId).text(name);
+        $(playerWinsId).html("Wins: <span id='player" + player + "'>0</span> Losses: <span id='player" + player + "-losses'>0</span>");
+      }
+    }
+  }
+
+  function resetNames() {
+    $("#player1-name").text("Waiting for Player 1");
+    $("#player2-name").text("Waiting for Player 2");
+    $("#player1-win-loss").empty();
+    $("#player2-win-loss").empty();
   }
 
   function errData(err) {
@@ -72,7 +82,7 @@ $(document).ready(function () {
   }
 
   function setUserDisplay(user, playerNumber) {
-    var welcomeText = $("<p>").text("Hi, " + user + ". You are Player " + playerNumber);
+    var welcomeText = $("<h4>").addClass("player-welcome").text("Hi, " + user + ". You are Player " + playerNumber);
      $("#user-display").append(welcomeText);
   }
  
