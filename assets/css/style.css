@@ -6,7 +6,7 @@
     margin-left: 20px;
 }
 
-#form-items {
+#user-display, .player-info {
     text-align: center;
 }
 
@@ -24,3 +24,6 @@ body {
 .mdl-layout-title {
     color: white;
 }
+
+/* Chat Styles */
+/*****************************/
