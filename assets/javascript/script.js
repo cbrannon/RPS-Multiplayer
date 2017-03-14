@@ -46,8 +46,7 @@ $(document).ready(function () {
 
   function getUserData(data) {
     resetNames();
-    var players = data.val(),
-        otherPlayer;
+    var players = data.val();
 
     currentPlayers = Object.keys(players);
 
@@ -56,6 +55,7 @@ $(document).ready(function () {
     }
 
     if (currentPlayers.length > 0) {
+      currentPlayers
       setPlayer(players, currentPlayers);
     }
   }
@@ -92,6 +92,15 @@ $(document).ready(function () {
 
   function getTurnData(data) {
     turnNumber = data.val();
+    console.log("turn value:" + turnNumber);
+    setTurnDisplay();
+
+    if (turnNumber != 1 && turnNumber % 2 != 0) {
+      showResults();
+    }
+  }
+
+  function setTurnDisplay() {
     $("#player1-turn").empty();
     $("#player2-turn").empty();
     if (turnNumber % 2 == 0) {
@@ -100,10 +109,6 @@ $(document).ready(function () {
     } else {
       $("#player2-turn").text("Waiting for other player to choose.");
       $("#player1-turn").text("It's your turn!");
-    }
-
-    if (turnNumber != 1 && turnNumber % 2 != 0) {
-      showResults();
     }
   }
 
@@ -143,6 +148,7 @@ $(document).ready(function () {
 
   // set game buttons
   function setButtons() {
+    setTurnDisplay();
     $("#player1-rps-buttons").empty();
     $("#player2-rps-buttons").empty();
     $(".chosen").empty();
@@ -220,6 +226,7 @@ $(document).ready(function () {
     console.log(player1Choice);
     $(".chosen").empty();
     setTimeout ( setButtons, 3000 );
+    setTimeout ( setButtons, 3000 );
     console.log("results");
   }
 
@@ -240,7 +247,6 @@ $(document).ready(function () {
         message: "has left the session.",
         messageStatus: "leave"
       });
-      turnNumber = 0;
       database.ref("turn").remove();
   });
 
@@ -269,9 +275,6 @@ $(document).ready(function () {
         choice: ele
       });
 
-      console.log(ele);
-
-      player2Choice = ele;
       turnNumber++;
       turn.set(turnNumber);
 
@@ -284,9 +287,6 @@ $(document).ready(function () {
         choice: ele
       });
 
-      console.log(ele);
-
-      player1Choice = ele;
       turnNumber++;
       turn.set(turnNumber);
     }
