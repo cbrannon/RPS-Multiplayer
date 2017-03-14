@@ -165,18 +165,22 @@ $(document).ready(function () {
   });
 
   $(window).on("unload", function () {
-    var currentPlayer = sessionStorage.getItem('playerNumber');
-    users.child(currentPlayer).remove();
+    users.child(playerNumber).remove();
+     chat.push({
+        name: playerName,
+        message: "has left the session.",
+        messageStatus: "leave"
+      });
   });
 
   $("#chat").on("click", function (event) {
     var newMessage = $("#chat-input").val();
-    $("#chat-input").val("");
+    console.log(newMessage);
 
     if (sessionStorage.getItem("name") != null) {
         chat.push({
         name: playerName,
-        message: "new message",
+        message: newMessage,
         messageStatus: "new"
       });
     }
