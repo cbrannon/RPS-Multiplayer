@@ -26,7 +26,7 @@ body {
     top: 160px;
 }
 
-form {
+#new-player-input {
     width: 100%;
     color: white;
 }
@@ -67,7 +67,7 @@ form {
 }
 
 #chat-card {
-    padding: 0 20px;
+    padding: 10px 20px;
     margin-bottom: 0;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
@@ -80,6 +80,7 @@ form {
     float: right;
     margin: 15px 10px 0 0;
 }
+
 /* Colors */
 /*****************************/
 body {
@@ -92,6 +93,14 @@ body {
 
 #chat-input {
     background: #fff;
+}
+
+.player1-chat {
+    color: blue;
+}
+
+.player2-chat {
+    color: green;
 }
 
 /* Chat Styles */
