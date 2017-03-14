@@ -87,7 +87,7 @@ body {
     background: rgb(66,66,66);
 }
 
-.mdl-layout-title, .player-welcome  {
+.mdl-layout-title, .player-welcome, .players-turn  {
     color: white;
 }
 
@@ -107,5 +107,12 @@ body {
     color: red;
 }
 
-/* Chat Styles */
+/* Font Styles */
 /*****************************/
+.players-turn {
+    font-size: 24px;
+}
+
+.chosen {
+    font-size: 56px;
+}

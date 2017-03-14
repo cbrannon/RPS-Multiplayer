@@ -11,26 +11,44 @@ $(document).ready(function () {
   firebase.initializeApp(config);
 
   // set variables for user reference, chat, turn, current players in session, player data from session, and opponent name;
-   var database = firebase.database(),
-      users = database.ref("users"),
-      chat = database.ref("chat"),
-      turn = database.ref("turn"),
-      turnNumber = 0,
-      currentPlayers = [],
-      playerName = "",
-      playerNumber = "",
-      otherPlayer,
-      gameStart = false;
+  var database = firebase.database(),
+    users = database.ref("users"),
+    chat = database.ref("chat"),
+    turn = database.ref("turn"),
+    turnNumber = 0,
+    currentPlayers = [],
+    playerName = "",
+    playerNumber = "",
+    otherPlayer,
+    gameStart = false;
+    player1Choice = "",
+    player2Choice = "";
 
-  users.on("value", getData, errData);
+  var rockDisplay = $("<i>").addClass("fa fa-hand-rock-o");
+  var paperDisplay = $("<i>").addClass("fa fa-hand-paper-o");
+  var scissorsDisplay = $("<i>").addClass("fa fa-hand-scissors-o");
+
+  database.ref().on("value", getData, errData);
+  users.on("value", getUserData, errUserData);
   chat.on("value", getChatData, errChatData);
   turn.on("value", getTurnData, errTurnData);
 
   function getData(data) {
+    // if no current players, clear chat data from database.
+    if (data.val().users == null) {
+      database.ref("chat").remove();
+    }
+  }
+
+  function errData(data) {
+    console.log(err);
+  }
+
+  function getUserData(data) {
     resetNames();
     var players = data.val(),
         otherPlayer;
-    
+
     currentPlayers = Object.keys(players);
 
     if (currentPlayers.length != 2) {
@@ -42,7 +60,7 @@ $(document).ready(function () {
     }
   }
 
-  function errData(err) {
+  function errUserData(err) {
     console.log(err);
   }
 
@@ -74,6 +92,19 @@ $(document).ready(function () {
 
   function getTurnData(data) {
     turnNumber = data.val();
+    $("#player1-turn").empty();
+    $("#player2-turn").empty();
+    if (turnNumber % 2 == 0) {
+      $("#player1-turn").text("Waiting for other player to choose.");
+      $("#player2-turn").text("It's your turn!");
+    } else {
+      $("#player2-turn").text("Waiting for other player to choose.");
+      $("#player1-turn").text("It's your turn!");
+    }
+
+    if (turnNumber != 1 && turnNumber % 2 != 0) {
+      showResults();
+    }
   }
 
   function errTurnData(err) {
@@ -110,7 +141,11 @@ $(document).ready(function () {
     setButtons();
   }
 
+  // set game buttons
   function setButtons() {
+    $("#player1-rps-buttons").empty();
+    $("#player2-rps-buttons").empty();
+    $(".chosen").empty();
     var playerButtons = "#player" + playerNumber + "-rps-buttons";
     var buttonChoices = ["rock", "paper", "scissors"];
 
@@ -154,10 +189,40 @@ $(document).ready(function () {
   }
 
   function setUserDisplay(user, playerNumber) {
-    var welcomeText = $("<h4>").addClass("player-welcome").text("Hi, " + user + ". You are Player " + playerNumber);
-     $("#user-display").append(welcomeText);
+      var welcomeText = $("<h4>").addClass("player-welcome").text("Hi, " + user + ". You are Player " + playerNumber);
+      var turnId = "player" + playerNumber + "-turn";
+      var turnContainer = $("<p>").attr("id", turnId).addClass("players-turn");
+      $("#user-display")
+      .append(welcomeText)
+      .append(turnContainer);
   }
- 
+
+  function setChoices(ele, player) {
+    var playerButtonsId = "#player" + player + "-rps-choice";
+
+    switch (ele) {
+        case "rock":
+          console.log("rock");
+          $(playerButtonsId).append(rockDisplay);
+          break;
+        
+        case "paper":
+          $(playerButtonsId).append(paperDisplay);
+            break;
+
+        case "scissors":
+          $(playerButtonsId).append(scissorsDisplay);
+            break;
+      }
+  }
+
+  function showResults() {
+    console.log(player1Choice);
+    $(".chosen").empty();
+    setTimeout ( setButtons, 3000 );
+    console.log("results");
+  }
+
   $("#submit").on("click", function (event) {
     event.preventDefault();
     var newUser = $("#new-player-input").val();
@@ -170,15 +235,17 @@ $(document).ready(function () {
 
   $(window).on("unload", function () {
     users.child(playerNumber).remove();
-     chat.push({
+      chat.push({
         name: playerName,
         message: "has left the session.",
         messageStatus: "leave"
       });
+      turnNumber = 0;
+      database.ref("turn").remove();
   });
 
   $("#chat").on("click", function (event) {
-    var newMessage = $("#chat-input").val();
+    var newMessage = $(".chatty").val();
     console.log(newMessage);
 
     if (sessionStorage.getItem("name") != null) {
@@ -192,14 +259,36 @@ $(document).ready(function () {
 
   $(".button-choices").on("click", ".choices", function (event) {
     var ele = $(event.currentTarget).attr("data-attribute");
+
     if (playerNumber == 2 && turnNumber % 2 == 0) {
+
+      $("#player2-rps-buttons").empty();
+      setChoices(ele, playerNumber);
+
       users.child(playerNumber).update({
         choice: ele
       });
+
+      console.log(ele);
+
+      player2Choice = ele;
+      turnNumber++;
+      turn.set(turnNumber);
+
     } else if (playerNumber == 1 && turnNumber % 2 != 0) {
+
+      $("#player1-rps-buttons").empty();
+      setChoices(ele, playerNumber);
+
       users.child(playerNumber).update({
         choice: ele
       });
+
+      console.log(ele);
+
+      player1Choice = ele;
+      turnNumber++;
+      turn.set(turnNumber);
     }
   });
 });
