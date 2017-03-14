@@ -15,20 +15,19 @@ $(document).ready(function () {
       users = database.ref("users"),
       chat = database.ref("chat"),
       turn = database.ref("turn"),
-      turnNumber = 1,
+      turnNumber = 0,
       currentPlayers = [],
       playerName = "",
       playerNumber = "",
-      otherPlayer;
+      otherPlayer,
+      gameStart = false;
 
   users.on("value", getData, errData);
   chat.on("value", getChatData, errChatData);
+  turn.on("value", getTurnData, errTurnData);
 
   function getData(data) {
-    // reset fields in case a player leaves
     resetNames();
-
-    // update of player data
     var players = data.val(),
         otherPlayer;
     
@@ -38,9 +37,9 @@ $(document).ready(function () {
       $(".button-choices").empty();
     }
 
-    console.log(currentPlayers.length);
-
-    setPlayer(players, currentPlayers);
+    if (currentPlayers.length > 0) {
+      setPlayer(players, currentPlayers);
+    }
   }
 
   function errData(err) {
@@ -73,35 +72,41 @@ $(document).ready(function () {
     console.log(err);
   }
 
+  function getTurnData(data) {
+    turnNumber = data.val();
+  }
+
+  function errTurnData(err) {
+    console.log(err);
+  }
+
   function setPlayer(players, currentPlayers) {
-    if (currentPlayers.length > 0) {
-      playerName = sessionStorage.getItem('name');
-      playerNumber = sessionStorage.getItem('playerNumber');
+    playerName = sessionStorage.getItem('name');
+    playerNumber = sessionStorage.getItem('playerNumber');
 
+    for (var i = 0; i < currentPlayers.length; i++) {
+      var player = currentPlayers[i],
+          name = players[player].name,
+          playerNameId = "#player" + player + "-name",
+          playerWinsId = "#player" + player + "-win-loss";
+      
+      $(playerNameId).text(name);
+      $(playerWinsId).html("Wins: <span id='player" + player + "'>0</span> Losses: <span id='player" + player + "-losses'>0</span>");
+    }
+
+    if (currentPlayers.length == 2 && gameStart == false) {
       for (var i = 0; i < currentPlayers.length; i++) {
-        var player = currentPlayers[i],
-            name = players[player].name,
-            playerNameId = "#player" + player + "-name",
-            playerWinsId = "#player" + player + "-win-loss";
-        
-        $(playerNameId).text(name);
-        $(playerWinsId).html("Wins: <span id='player" + player + "'>0</span> Losses: <span id='player" + player + "-losses'>0</span>");
-      }
-
-      if (currentPlayers.length == 2) {
-        for (var i = 0; i < currentPlayers.length; i++) {
-          if (currentPlayers[i] != playerName) {
-            otherPlayer = currentPlayers[i];
-          }
+        if (currentPlayers[i] != playerName) {
+          otherPlayer = currentPlayers[i];
         }
-        startGame();
       }
+      startGame();
     }
   }
 
   function startGame() {
-    console.log("Game Start");
-    turn = 1;
+    gameStart = true;
+    turn.set(1);
     setButtons();
   }
 
@@ -112,10 +117,9 @@ $(document).ready(function () {
     for (var i = 0; i < buttonChoices.length; i++) {
       var button = $("<button>");
       var icon = $("<i>").addClass("fa fa-hand-" + buttonChoices[i] + "-o");
-      var buttonId = "player" + playerNumber + "-" + buttonChoices[i];
       
       button
-        .attr("id", buttonId)
+        .attr("data-attribute",  buttonChoices[i])
         .attr("aria-hidden", "true")
         .addClass("mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect choices")
         .append(icon);
@@ -125,8 +129,8 @@ $(document).ready(function () {
   }
 
   function resetNames() {
-    $("#player1-name").text("Waiting for Player 1");
-    $("#player2-name").text("Waiting for Player 2");
+    $("#player1-name").text("Waiting for 1");
+    $("#player2-name").text("Waiting for 2");
     $(".wins-losses").empty();
   }
 
@@ -182,6 +186,19 @@ $(document).ready(function () {
         name: playerName,
         message: newMessage,
         messageStatus: "new"
+      });
+    }
+  });
+
+  $(".button-choices").on("click", ".choices", function (event) {
+    var ele = $(event.currentTarget).attr("data-attribute");
+    if (playerNumber == 2 && turnNumber % 2 == 0) {
+      users.child(playerNumber).update({
+        choice: ele
+      });
+    } else if (playerNumber == 1 && turnNumber % 2 != 0) {
+      users.child(playerNumber).update({
+        choice: ele
       });
     }
   });
