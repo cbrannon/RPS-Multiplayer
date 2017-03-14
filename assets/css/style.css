@@ -13,6 +13,7 @@
 .player-info {
     position: relative;
     min-height: 200px;
+    height: auto;
 }
 
 .wins-losses {
@@ -26,6 +27,55 @@ form {
     color: white;
 }
 
+.choices {
+    font-size: 32px;
+    margin: 0 10px;
+}
+
+#game-card-container {
+    padding-bottom: 0;
+}
+
+#chat-card-container {
+    padding-top: 0;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    border-top-right-radius: 2px;
+}
+
+#chat-input-container {
+    height: 80px;
+    bottom: 50px;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+#chat-input-wrap {
+    left: 20px;
+    width: 70%;
+}
+
+#chat-input {
+    margin-top: 0;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+#chat-card {
+    padding: 0 20px;
+    margin-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    height: 180px;
+    overflow: scroll;
+}
+
+#chat {
+    text-align: right;
+    bottom: 20px;
+}
+
 /* Colors */
 /*****************************/
 body {
@@ -34,6 +84,10 @@ body {
 
 .mdl-layout-title, .player-welcome  {
     color: white;
+}
+
+#chat-input {
+    background: #fff;
 }
 
 /* Chat Styles */

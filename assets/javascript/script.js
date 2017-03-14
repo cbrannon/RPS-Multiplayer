@@ -10,33 +10,92 @@ $(document).ready(function () {
   };
   firebase.initializeApp(config);
 
-  var database = firebase.database();
-  var players = database.ref("users");
-  var currentPlayers = [];
-  var playerName = "";
-  var playerNumber = "";
+  // set variables for user reference, chat, turn, current players in session, player data from session, and opponent name;
+  var database = firebase.database(),
+      users = database.ref("users"),
+      chat,
+      turn,
+      currentPlayers = [],
+      playerName = "",
+      playerNumber = "",
+      otherPlayer;
 
-  players.on("value", getData, errData);
+  users.on("value", getData, errData);
 
   function getData(data) {
-    var players = data.val();
-    currentPlayers = Object.keys(players);
-    console.log(currentPlayers.length);
-
+    // reset fields in case a player leaves
     resetNames();
 
+    // update of player data
+    var players = data.val(),
+        otherPlayer;
+    
+    currentPlayers = Object.keys(players);
+
+    if (currentPlayers.length != 2) {
+      $(".button-choices").empty();
+    }
+
+    console.log(currentPlayers.length);
+
+    setPlayer(players, currentPlayers);
+  }
+
+  function errData(err) {
+    console.log(err);
+  }
+
+  function setPlayer(players, currentPlayers) {
     if (currentPlayers.length > 0) {
       playerName = sessionStorage.getItem('name');
       playerNumber = sessionStorage.getItem('playerNumber');
 
       for (var i = 0; i < currentPlayers.length; i++) {
-        var player = currentPlayers[i];
-        var name = players[player].name;
-        var playerNameId = "#player" + player + "-name";
-        var playerWinsId = "#player" + player + "-win-loss";
+        var player = currentPlayers[i],
+            name = players[player].name,
+            playerNameId = "#player" + player + "-name",
+            playerWinsId = "#player" + player + "-win-loss";
+        
         $(playerNameId).text(name);
         $(playerWinsId).html("Wins: <span id='player" + player + "'>0</span> Losses: <span id='player" + player + "-losses'>0</span>");
       }
+
+      if (currentPlayers.length == 2) {
+        for (var i = 0; i < currentPlayers.length; i++) {
+          if (currentPlayers[i] != playerName) {
+            otherPlayer = currentPlayers[i];
+          }
+        }
+        startGame();
+      }
+    }
+  }
+
+  function startGame() {
+    console.log("Game Start");
+    turn = 1;
+    setButtons();
+
+    chat = database.ref("chat");
+    turn = database.ref("turn");
+  }
+
+  function setButtons() {
+    var playerButtons = "#player" + playerNumber + "-rps-buttons";
+    var buttonChoices = ["rock", "paper", "scissors"];
+
+    for (var i = 0; i < buttonChoices.length; i++) {
+      var button = $("<button>");
+      var icon = $("<i>").addClass("fa fa-hand-" + buttonChoices[i] + "-o");
+      var buttonId = "player" + playerNumber + "-" + buttonChoices[i];
+      
+      button
+        .attr("id", buttonId)
+        .attr("aria-hidden", "true")
+        .addClass("mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect choices")
+        .append(icon);
+      
+      $(playerButtons).append(button);
     }
   }
 
@@ -47,18 +106,9 @@ $(document).ready(function () {
     $("#player2-win-loss").empty();
   }
 
-  function errData(err) {
-    console.log(err);
-  }
 
-  function setDisplay() {
-    console.log(players);
-  }
-  
   function setUser(user) {
     var playerNumber;
-    // if player 1 is available
-    console.log(currentPlayers);
     if (currentPlayers.indexOf("1") == -1) {
       playerNumber = 1;
     } else {
@@ -68,17 +118,12 @@ $(document).ready(function () {
     sessionStorage.setItem("playerNumber", playerNumber);
     sessionStorage.setItem("name", user);
     setUserDisplay(user, playerNumber);
-    // getSession(player);
 
-    players.child(playerNumber).set({
+    users.child(playerNumber).set({
       name: user,
       losses: 0,
       wins: 0
     });
-  }
-
-  function getSession(player) {
-
   }
 
   function setUserDisplay(user, playerNumber) {
@@ -98,6 +143,6 @@ $(document).ready(function () {
 
   $(window).on("unload", function () {
     var currentPlayer = sessionStorage.getItem('playerNumber');
-    players.child(currentPlayer).remove();
+    users.child(currentPlayer).remove();
   });
 });
