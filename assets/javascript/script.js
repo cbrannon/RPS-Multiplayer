@@ -19,29 +19,21 @@ $(document).ready(function () {
     currentPlayers = [],
     playerName = "",
     playerNumber = "",
-    gameStart = false,
-    player1Name = "",
-    player2Name = "",
-    player1Choice = "",
-    player2Choice = "";
+    gameStart = false;
 
   var player1Data = {
-    player1Name: "",
-    player1Choice: "",
-    player1Wins: "",
-    player1Losses: ""
+    name: "",
+    choice: "",
+    wins: 0,
+    losses: 0
   }
 
   var player2Data = {
-    player2Name: "",
-    player2Choice: "",
-    player2Wins: "",
-    player2Losses: ""
+    name: "",
+    choice: "",
+    wins: 0,
+    losses: 0
   }
-
-  var rockDisplay = $("<i>").addClass("fa fa-hand-rock-o");
-  var paperDisplay = $("<i>").addClass("fa fa-hand-paper-o");
-  var scissorsDisplay = $("<i>").addClass("fa fa-hand-scissors-o");
 
   database.ref().on("value", getData, errData);
   users.on("value", getUserData, errUserData);
@@ -117,6 +109,13 @@ $(document).ready(function () {
     }
   }
 
+  function setWinsLosses(player1Data, player2Data) {
+    $("#player1-wins").text(player1Data.wins);
+    $("#player1-losses").text(player1Data.losses);
+    $("#player2-wins").text(player2Data.wins);
+    $("#player2-losses").text(player2Data.losses);
+  }
+
   function setTurnDisplay() {
     $("#player1-turn").empty();
     $("#player2-turn").empty();
@@ -142,15 +141,20 @@ $(document).ready(function () {
           name = players[player].name,
           playerNameId = "#player" + player + "-name",
           playerWinsId = "#player" + player + "-win-loss";
-      
+
+      if (player == 1) {
+        var playerData = player1Data;
+      } else {
+        var playerData = player2Data;
+      }
 
       $(playerNameId).text(name);
-      $(playerWinsId).html("Wins: <span id='player" + player + "'>0</span> Losses: <span id='player" + player + "-losses'>0</span>");
+      $(playerWinsId).html("Wins: <span id='player" + player + "-wins'>" + playerData.wins + "</span> Losses: <span id='player" + player + "-losses'>" + playerData.wins + "</span>");
     }
 
     if (currentPlayers.length == 2 && gameStart == false) {
-      player1Name = players["1"].name;
-      player2Name = players["2"].name;
+      player1Data.name = players["1"].name;
+      player2Data.name = players["2"].name;
       startGame();
     }
   }
@@ -230,36 +234,61 @@ $(document).ready(function () {
 
   function getChoices(player) {
     if (player["1"].choice !== undefined) {
-      player1Choice = player["1"].choice;
+      player1Data.choice = player["1"].choice;
     }
     
     if (player["2"].choice !== undefined){
-      player2Choice = player["2"].choice;
+      player2Data.choice = player["2"].choice;
     }
-    console.log("Player 1 choice: " + player1Choice);
-    console.log("Player 2 choice: " + player2Choice);
+    console.log("Player 1 choice: " + player1Data.choice);
+    console.log("Player 2 choice: " + player2Data.choice);
   }
 
   function evaluateResults(player1Choice, player2Choice) {
     var winner;
-    if (player1Choice == "rock" && player2Choice == "scissors" 
+    if (player1Choice == player2Choice) {
+      winner = "No one";
+    }
+
+    else if (player1Choice == "rock" && player2Choice == "scissors" 
      || player1Choice == "paper" && player2Choice == "rock" 
      || player1Choice == "scissors" && player2Choice == "paper") {
-       winner = player1Name;
-       console.log("Player 1:");
+       winner = player1Data.name;
+       player1Data.wins = player1Data.wins += 1;
+       player2Data.losses = player2Data.losses += 1;
+
+       users.child("1").update({
+         wins: player1Data.wins
+       });
+
+       users.child("2").update({
+         losses: player2Data.losses
+       });
+
     } else {
-      winner = player2Name;
-      console.log("Player 2 wins!");
+       winner = player2Data.name;
+       player2Data.wins = player2Data.wins += 1;
+       player1Data.losses = player1Data.losses += 1;
+
+       users.child("1").update({
+         losses: player1Data.losses
+       });
+
+       users.child("2").update({
+         wins: player2Data.wins
+       });
     }
+    setWinsLosses(player1Data, player2Data);
     $("#results-card").append("<h1>" + winner + " wins!</h1>");
     setTimeout ( setButtons, 5000 );
   }
 
   function showResults() {
     $(".chosen").empty();
-    $("#player1-rps-choice").append($("<i>").addClass("fa fa-hand-" + player1Choice +"-o"));
-    $("#player2-rps-choice").append($("<i>").addClass("fa fa-hand-" + player2Choice +"-o"));
-    evaluateResults(player1Choice, player2Choice);
+    $(".players-turn").empty();
+    $("#player1-rps-choice").append($("<i>").addClass("fa fa-hand-" + player1Data.choice +"-o"));
+    $("#player2-rps-choice").append($("<i>").addClass("fa fa-hand-" + player2Data.choice +"-o"));
+    evaluateResults(player1Data.choice, player2Data.choice);
   }
 
   $("#submit").on("click", function (event) {
