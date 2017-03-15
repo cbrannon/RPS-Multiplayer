@@ -21,6 +21,7 @@ $(document).ready(function () {
     playerNumber = "",
     gameStart = false;
 
+  // Player 1 data object to check locally.
   var player1Data = {
     name: "",
     choice: "",
@@ -28,6 +29,7 @@ $(document).ready(function () {
     losses: 0
   }
 
+  // Player 2 data object to check locally.
   var player2Data = {
     name: "",
     choice: "",
@@ -35,26 +37,32 @@ $(document).ready(function () {
     losses: 0
   }
 
+  // check for updates to root database, users, chat, and turns.
   database.ref().on("value", getData, errData);
   users.on("value", getUserData, errUserData);
   chat.on("value", getChatData, errChatData);
   turn.on("value", getTurnData, errTurnData);
 
+  // remove chat items if no players currently in session
   function getData(data) {
     if (data.val().users == null) {
       database.ref("chat").remove();
     }
   }
 
+  // log error if receive from database root reference value
   function errData(data) {
     console.log(err);
   }
 
+  // if user data changes call this
   function getUserData(data) {
     resetNames();
     var players = data.val();
     currentPlayers = Object.keys(players);
     console.log("Current player length: " + currentPlayers.length);
+
+    // if there are not two users stop game, reset data and remove text and buttons from DOM.
     if (currentPlayers.length != 2) {
       gameStart = false;
       $(".button-choices").empty();
@@ -65,25 +73,30 @@ $(document).ready(function () {
       resetWinsLosses(data);
     }
 
+    // if there is a player in session add information to DOM.
     if (currentPlayers.length > 0) {
       setPlayer(players, currentPlayers);
     }
 
+    // if there are two players check for answer given.
     if (currentPlayers.length == 2) {
       getChoices(players);
     }
   }
 
+  // log error if received from user data value
   function errUserData(err) {
     console.log(err);
   }
 
+  // call this if there is an update to chat data.
   function getChatData(data) {
     var log = data.val();
     var chatKeys = Object.keys(log);
     setChatData(log, chatKeys);
   }
 
+  // if there is an update to chat data call this to place in DOM.
   function setChatData(chat, chatKeys) {
     $("#chat-card").empty();
     for (var i = 0; i < chatKeys.length; i++) {
@@ -101,20 +114,24 @@ $(document).ready(function () {
     }
   }
 
+  // log if error received from chat data value.
   function errChatData(err) {
     console.log(err);
   }
 
+  // call this if there is an update to turn count.
   function getTurnData(data) {
     turnNumber = data.val();
     console.log("turn value:" + turnNumber);
     setTurnDisplay();
 
+    // Call showResults if odd turn, first turn is exception.
     if (turnNumber != 1 && turnNumber % 2 != 0 && currentPlayers.length == 2) {
       showResults();
     }
   }
 
+  // set wins and losses to DOM.
   function setWinsLosses(player1Data, player2Data) {
     $("#player1-wins").text(player1Data.wins);
     $("#player1-losses").text(player1Data.losses);
@@ -122,6 +139,7 @@ $(document).ready(function () {
     $("#player2-losses").text(player2Data.losses);
   }
 
+  // when turn is updated show each player whose turn it is.
   function setTurnDisplay() {
     $("#player1-turn").empty();
     $("#player2-turn").empty();
@@ -134,10 +152,12 @@ $(document).ready(function () {
     }
   }
 
+  // call this if error received from turn database value.
   function errTurnData(err) {
     console.log(err);
   }
 
+  // set up player information for the DOM.
   function setPlayer(players, currentPlayers) {
     playerName = sessionStorage.getItem('name');
     playerNumber = sessionStorage.getItem('playerNumber');
@@ -158,6 +178,7 @@ $(document).ready(function () {
       $(playerWinsId).html("Wins: <span id='player" + player + "-wins'>" + playerData.wins + "</span> Losses: <span id='player" + player + "-losses'>" + playerData.wins + "</span>");
     }
 
+    // start game if two players in session
     if (currentPlayers.length == 2 && gameStart == false) {
       player1Data.name = players["1"].name;
       player2Data.name = players["2"].name;
@@ -165,6 +186,7 @@ $(document).ready(function () {
     }
   }
 
+  // start game, set turn and buttons.
   function startGame() {
     gameStart = true;
     turn.set(1);
@@ -192,12 +214,14 @@ $(document).ready(function () {
     }
   }
 
+  // reset name and wins-losses
   function resetNames() {
     $("#player1-name").text("Waiting for 1");
     $("#player2-name").text("Waiting for 2");
     $(".wins-losses").empty();
   }
 
+  // reset game display information
   function resetGameDisplay() {
     $("#player1-rps-buttons").empty();
     $("#player2-rps-buttons").empty();
@@ -205,6 +229,7 @@ $(document).ready(function () {
     $("#results-card").empty();
   }
 
+  // reset wins and losses for if player leaves session
   function resetWinsLosses(data) {
     player1Data.wins = 0;
     player2Data.wins = 0;
@@ -226,6 +251,7 @@ $(document).ready(function () {
     }
   }
 
+  // setup player when user puts information into input field
   function setUser(user) {
     if (currentPlayers.indexOf("1") == -1) {
       var playerNumber = 1;
@@ -244,8 +270,9 @@ $(document).ready(function () {
     });
   }
 
+  // setup user display welcome notice and turn containers to DOM
   function setUserDisplay(user, playerNumber) {
-      var welcomeText = $("<h4>").addClass("player-welcome").text("Hi, " + user + ". You are Player " + playerNumber);
+      var welcomeText = $("<h4>").addClass("player-welcome").text("Hi, " + user + ". You are Player " + playerNumber + ".");
       var turnId = "player" + playerNumber + "-turn";
       var turnContainer = $("<p>").attr("id", turnId).addClass("players-turn");
 
@@ -254,11 +281,13 @@ $(document).ready(function () {
         .append(turnContainer);
   }
 
+  // shows user what choice they have selected to play
   function setChoices(ele, player) {
     var playerButtonsId = "#player" + player + "-rps-choice";
     $(playerButtonsId).append($("<i>").addClass("fa fa-hand-" + ele + "-o"));
   }
 
+  // sets local player object choice property equal to database choice property
   function getChoices(player) {
     if (player["1"].choice !== undefined) {
       player1Data.choice = player["1"].choice;
@@ -271,6 +300,7 @@ $(document).ready(function () {
     console.log("Player 2 choice: " + player2Data.choice);
   }
 
+  // evalute choices
   function evaluateResults(player1Choice, player2Choice) {
     var winner;
     if (player1Choice == player2Choice) {
@@ -310,6 +340,7 @@ $(document).ready(function () {
     setTimeout ( setButtons, 5000 );
   }
 
+  // show results of round
   function showResults() {
     if (currentPlayers.length == 2) {
       $(".chosen").empty();
@@ -320,6 +351,7 @@ $(document).ready(function () {
     }
   }
 
+  // submit new user name to play as
   $("#submit").on("click", function (event) {
     event.preventDefault();
     var newUser = $("#new-player-input").val();
@@ -330,6 +362,7 @@ $(document).ready(function () {
     }
   });
 
+  // on refresh (in Chrome) and page close, kill current user from database.
   $(window).on("unload", function () {
     users.child(playerNumber).remove();
       chat.push({
@@ -341,6 +374,7 @@ $(document).ready(function () {
       database.ref("turn").remove();
   });
 
+  // submit message to chat
   $("#chat").on("click", function (event) {
     event.preventDefault();
     var newMessage = $(".chatty").val();
@@ -356,6 +390,7 @@ $(document).ready(function () {
     }
   });
 
+  // make a choice for round
   $(".button-choices").on("click", ".choices", function (event) {
     var ele = $(event.currentTarget).attr("data-attribute");
 

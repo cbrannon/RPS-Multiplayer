@@ -2,16 +2,20 @@
     box-sizing: border-box;
 }
 
-body {
-    min-width: 420px;
-}
-
 #submit {
     margin-left: 20px;
 }
 
 #user-display, .player-info, .win-losses, #results-card {
     text-align: center;
+}
+
+#results-card {
+    padding-top: 35px;
+}
+
+#user-display {
+    min-height: 120px;
 }
 
 .player-info {
@@ -28,7 +32,6 @@ body {
 
 #new-player-input {
     width: 100%;
-    color: white;
 }
 
 .choices {
@@ -73,7 +76,7 @@ body {
     height: 200px;
     display: flex;
     justify-content: flex-end;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 #chat {
@@ -88,8 +91,8 @@ body {
     background: rgb(66,66,66);
 }
 
-.mdl-layout-title, .player-welcome, .players-turn  {
-    color: white;
+.mdl-layout-title, .player-welcome, .players-turn, #new-player-input  {
+    color: #fff;
 }
 
 #chat-input {
@@ -107,7 +110,6 @@ body {
 .player-left {
     color: red;
 }
-
 /* Font Styles */
 /*****************************/
 .players-turn {
