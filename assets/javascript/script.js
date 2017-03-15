@@ -54,16 +54,22 @@ $(document).ready(function () {
     resetNames();
     var players = data.val();
     currentPlayers = Object.keys(players);
-
+    console.log("Current player length: " + currentPlayers.length);
     if (currentPlayers.length != 2) {
+      gameStart = false;
       $(".button-choices").empty();
       $("#player1-turn").empty();
       $("#player2-turn").empty();
+      $(".players-turn").empty();
       turn.remove();
+      resetWinsLosses(data);
     }
 
     if (currentPlayers.length > 0) {
       setPlayer(players, currentPlayers);
+    }
+
+    if (currentPlayers.length == 2) {
       getChoices(players);
     }
   }
@@ -104,7 +110,7 @@ $(document).ready(function () {
     console.log("turn value:" + turnNumber);
     setTurnDisplay();
 
-    if (turnNumber != 1 && turnNumber % 2 != 0) {
+    if (turnNumber != 1 && turnNumber % 2 != 0 && currentPlayers.length == 2) {
       showResults();
     }
   }
@@ -199,6 +205,27 @@ $(document).ready(function () {
     $("#results-card").empty();
   }
 
+  function resetWinsLosses(data) {
+    player1Data.wins = 0;
+    player2Data.wins = 0;
+    player1Data.losses = 0;
+    player2Data.losses = 0;
+
+    if (data.hasChild("1")) {
+      users.child("1").update({
+        wins: player1Data.wins,
+        losses: player1Data.losses
+      });
+    }
+
+    if (data.hasChild("2")) {
+      users.child("2").update({
+        wins: player1Data.wins,
+        losses: player1Data.losses
+      });
+    }
+  }
+
   function setUser(user) {
     if (currentPlayers.indexOf("1") == -1) {
       var playerNumber = 1;
@@ -284,11 +311,13 @@ $(document).ready(function () {
   }
 
   function showResults() {
-    $(".chosen").empty();
-    $(".players-turn").empty();
-    $("#player1-rps-choice").append($("<i>").addClass("fa fa-hand-" + player1Data.choice +"-o"));
-    $("#player2-rps-choice").append($("<i>").addClass("fa fa-hand-" + player2Data.choice +"-o"));
-    evaluateResults(player1Data.choice, player2Data.choice);
+    if (currentPlayers.length == 2) {
+      $(".chosen").empty();
+      $(".players-turn").empty();
+      $("#player1-rps-choice").append($("<i>").addClass("fa fa-hand-" + player1Data.choice +"-o"));
+      $("#player2-rps-choice").append($("<i>").addClass("fa fa-hand-" + player2Data.choice +"-o"));
+      evaluateResults(player1Data.choice, player2Data.choice);
+    }
   }
 
   $("#submit").on("click", function (event) {
@@ -308,6 +337,7 @@ $(document).ready(function () {
         message: "has left the session.",
         messageStatus: "leave"
       });
+
       database.ref("turn").remove();
   });
 
