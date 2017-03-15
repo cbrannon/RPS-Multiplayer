@@ -79,9 +79,9 @@ $(document).ready(function () {
       var messageStatus = chat[key].messageStatus;
 
       if (messageStatus == "leave") {
-        $("#chat-card").prepend("<p><span class='player-left'>" + name + " " + message  +"</span></p>");
+        $("#chat-card").append("<p><span class='player-left'>" + name + " " + message  +"</span></p>");
       } else {
-        $("#chat-card").prepend("<p><span class='player" + playerNumber + "-chat'>" + name + "</span>: " + message + "</p>");
+        $("#chat-card").append("<p><span class='player" + playerNumber + "-chat'>" + name + "</span>: " + message + "</p>");
       }
     }
   }
@@ -251,15 +251,16 @@ $(document).ready(function () {
   });
 
   $("#chat").on("click", function (event) {
+    event.preventDefault();
     var newMessage = $(".chatty").val();
-    console.log(newMessage);
 
     if (sessionStorage.getItem("name") != null) {
         chat.push({
         name: playerName,
         message: newMessage,
         messageStatus: "new"
-      });
+        });
+      $(".chatty").val("");
     }
   });
 
