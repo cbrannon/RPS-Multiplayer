@@ -186,6 +186,10 @@ $(document).ready(function () {
     }
   }
 
+  function setPlayerData(player) {
+    
+  }
+
   // start game, set turn and buttons.
   function startGame() {
     gameStart = true;

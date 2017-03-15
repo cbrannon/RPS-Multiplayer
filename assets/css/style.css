@@ -91,7 +91,7 @@ body {
     background: rgb(66,66,66);
 }
 
-.mdl-layout-title, .player-welcome, .players-turn, #new-player-input  {
+.mdl-layout-title, .player-welcome, .players-turn, #new-player-input, #new-player-label  {
     color: #fff;
 }
 
@@ -110,6 +110,8 @@ body {
 .player-left {
     color: red;
 }
+
+
 /* Font Styles */
 /*****************************/
 .players-turn {
