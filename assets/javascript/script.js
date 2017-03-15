@@ -19,10 +19,25 @@ $(document).ready(function () {
     currentPlayers = [],
     playerName = "",
     playerNumber = "",
-    otherPlayer,
-    gameStart = false;
+    gameStart = false,
+    player1Name = "",
+    player2Name = "",
     player1Choice = "",
     player2Choice = "";
+
+  var player1Data = {
+    player1Name: "",
+    player1Choice: "",
+    player1Wins: "",
+    player1Losses: ""
+  }
+
+  var player2Data = {
+    player2Name: "",
+    player2Choice: "",
+    player2Wins: "",
+    player2Losses: ""
+  }
 
   var rockDisplay = $("<i>").addClass("fa fa-hand-rock-o");
   var paperDisplay = $("<i>").addClass("fa fa-hand-paper-o");
@@ -34,7 +49,6 @@ $(document).ready(function () {
   turn.on("value", getTurnData, errTurnData);
 
   function getData(data) {
-    // if no current players, clear chat data from database.
     if (data.val().users == null) {
       database.ref("chat").remove();
     }
@@ -47,16 +61,18 @@ $(document).ready(function () {
   function getUserData(data) {
     resetNames();
     var players = data.val();
-
     currentPlayers = Object.keys(players);
 
     if (currentPlayers.length != 2) {
       $(".button-choices").empty();
+      $("#player1-turn").empty();
+      $("#player2-turn").empty();
+      turn.remove();
     }
 
     if (currentPlayers.length > 0) {
-      currentPlayers
       setPlayer(players, currentPlayers);
+      getChoices(players);
     }
   }
 
@@ -73,10 +89,11 @@ $(document).ready(function () {
   function setChatData(chat, chatKeys) {
     $("#chat-card").empty();
     for (var i = 0; i < chatKeys.length; i++) {
-      var key = chatKeys[i];
-      var name = chat[key].name;
-      var message = chat[key].message;
-      var messageStatus = chat[key].messageStatus;
+      let key = chatKeys[i];
+      let name = chat[key].name;
+      let message = chat[key].message;
+      let messageStatus = chat[key].messageStatus;
+      let playerNumber = chat[key].player_number;
 
       if (messageStatus == "leave") {
         $("#chat-card").append("<p><span class='player-left'>" + name + " " + message  +"</span></p>");
@@ -126,16 +143,14 @@ $(document).ready(function () {
           playerNameId = "#player" + player + "-name",
           playerWinsId = "#player" + player + "-win-loss";
       
+
       $(playerNameId).text(name);
       $(playerWinsId).html("Wins: <span id='player" + player + "'>0</span> Losses: <span id='player" + player + "-losses'>0</span>");
     }
 
     if (currentPlayers.length == 2 && gameStart == false) {
-      for (var i = 0; i < currentPlayers.length; i++) {
-        if (currentPlayers[i] != playerName) {
-          otherPlayer = currentPlayers[i];
-        }
-      }
+      player1Name = players["1"].name;
+      player2Name = players["2"].name;
       startGame();
     }
   }
@@ -149,9 +164,7 @@ $(document).ready(function () {
   // set game buttons
   function setButtons() {
     setTurnDisplay();
-    $("#player1-rps-buttons").empty();
-    $("#player2-rps-buttons").empty();
-    $(".chosen").empty();
+    resetGameDisplay();
     var playerButtons = "#player" + playerNumber + "-rps-buttons";
     var buttonChoices = ["rock", "paper", "scissors"];
 
@@ -175,6 +188,12 @@ $(document).ready(function () {
     $(".wins-losses").empty();
   }
 
+  function resetGameDisplay() {
+    $("#player1-rps-buttons").empty();
+    $("#player2-rps-buttons").empty();
+    $(".chosen").empty();
+    $("#results-card").empty();
+  }
 
   function setUser(user) {
     if (currentPlayers.indexOf("1") == -1) {
@@ -198,36 +217,49 @@ $(document).ready(function () {
       var welcomeText = $("<h4>").addClass("player-welcome").text("Hi, " + user + ". You are Player " + playerNumber);
       var turnId = "player" + playerNumber + "-turn";
       var turnContainer = $("<p>").attr("id", turnId).addClass("players-turn");
+
       $("#user-display")
-      .append(welcomeText)
-      .append(turnContainer);
+        .append(welcomeText)
+        .append(turnContainer);
   }
 
   function setChoices(ele, player) {
     var playerButtonsId = "#player" + player + "-rps-choice";
+    $(playerButtonsId).append($("<i>").addClass("fa fa-hand-" + ele + "-o"));
+  }
 
-    switch (ele) {
-        case "rock":
-          console.log("rock");
-          $(playerButtonsId).append(rockDisplay);
-          break;
-        
-        case "paper":
-          $(playerButtonsId).append(paperDisplay);
-            break;
+  function getChoices(player) {
+    if (player["1"].choice !== undefined) {
+      player1Choice = player["1"].choice;
+    }
+    
+    if (player["2"].choice !== undefined){
+      player2Choice = player["2"].choice;
+    }
+    console.log("Player 1 choice: " + player1Choice);
+    console.log("Player 2 choice: " + player2Choice);
+  }
 
-        case "scissors":
-          $(playerButtonsId).append(scissorsDisplay);
-            break;
-      }
+  function evaluateResults(player1Choice, player2Choice) {
+    var winner;
+    if (player1Choice == "rock" && player2Choice == "scissors" 
+     || player1Choice == "paper" && player2Choice == "rock" 
+     || player1Choice == "scissors" && player2Choice == "paper") {
+       winner = player1Name;
+       console.log("Player 1:");
+    } else {
+      winner = player2Name;
+      console.log("Player 2 wins!");
+    }
+    $("#results-card").append("<h1>" + winner + " wins!</h1>");
+    setTimeout ( setButtons, 5000 );
   }
 
   function showResults() {
-    console.log(player1Choice);
     $(".chosen").empty();
-    setTimeout ( setButtons, 3000 );
-    setTimeout ( setButtons, 3000 );
-    console.log("results");
+    $("#player1-rps-choice").append($("<i>").addClass("fa fa-hand-" + player1Choice +"-o"));
+    $("#player2-rps-choice").append($("<i>").addClass("fa fa-hand-" + player2Choice +"-o"));
+    evaluateResults(player1Choice, player2Choice);
   }
 
   $("#submit").on("click", function (event) {
@@ -257,6 +289,7 @@ $(document).ready(function () {
     if (sessionStorage.getItem("name") != null) {
         chat.push({
         name: playerName,
+        player_number: playerNumber,
         message: newMessage,
         messageStatus: "new"
         });
@@ -268,7 +301,6 @@ $(document).ready(function () {
     var ele = $(event.currentTarget).attr("data-attribute");
 
     if (playerNumber == 2 && turnNumber % 2 == 0) {
-
       $("#player2-rps-buttons").empty();
       setChoices(ele, playerNumber);
 
@@ -280,7 +312,6 @@ $(document).ready(function () {
       turn.set(turnNumber);
 
     } else if (playerNumber == 1 && turnNumber % 2 != 0) {
-
       $("#player1-rps-buttons").empty();
       setChoices(ele, playerNumber);
 

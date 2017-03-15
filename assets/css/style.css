@@ -10,7 +10,7 @@ body {
     margin-left: 20px;
 }
 
-#user-display, .player-info, .win-losses {
+#user-display, .player-info, .win-losses, #results-card {
     text-align: center;
 }
 
